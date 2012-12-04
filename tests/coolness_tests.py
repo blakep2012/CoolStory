@@ -99,13 +99,16 @@ class TestCoolness(unittest.TestCase):
     def test_cool(self):
         analyzer = coolness.CoolAnalyzer()
         analyzer._tf_idf(COOL_TWEETS)
+        #analyzer.split_train_eval(trained)
         flwravg = analyzer.find_cool_line(COOL_TWEETS)
-        filtered = analyzer.filter_classes(COOL_TWEETS,flwravg)
-        #analyzer.split_train_eval(filtered)
-        self.assertEqual(analyzer.knn(filtered, 3), 'uncool')
-        self.assertEqual(analyzer.knn(filtered, 4), 'uncool')
-        self.assertEqual(analyzer.knn(filtered, 5), 'uncool')
-        self.assertEqual(analyzer.knn(filtered, 8), 'cool')
+        trained = analyzer.filter_classes(COOL_TWEETS,flwravg)
+        #traingroup, evalgroup = analyzer.split_train_eval(trained)
+        #print len(traingroup)
+        #print len(evalgroup)
+        self.assertEqual(analyzer.knn(trained, 3), 'uncool')
+        self.assertEqual(analyzer.knn(trained, 4), 'uncool')
+        self.assertEqual(analyzer.knn(trained, 5), 'uncool')
+        self.assertEqual(analyzer.knn(trained, 8), 'cool')
 
 if __name__ == '__main__':
     unittest.main()

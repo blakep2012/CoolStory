@@ -20,14 +20,16 @@ class CoolAnalyzer(object):
         index = 1
 
         for tweet in tweets:
+            #print tweet
             tokens = re.findall("[\w']+", tweet['text'].lower())
             if tweet['user']['id'] in self.users:
                 self.users[tweet['user']['id']]['tokens'] += tokens
             else:
                 self.users[tweet['user']['id']] = {}
                 self.users[tweet['user']['id']]['tokens'] = tokens
-                self.users[tweet['user']['id']]['follower_count'] = tweet['user']['follower_count']
+                self.users[tweet['user']['id']]['follower_count'] = tweet['user']['followers_count']
                 self.users[tweet['user']['id']]['index'] = index
+                self.users[tweet['user']['id']]['screen_name'] = tweet['user']['screen_name']
                 index += 1
 
             for token in tokens:
@@ -63,7 +65,7 @@ class CoolAnalyzer(object):
         count = 0.0
 
         for tweet in tweets:
-            followercountavg += tweet['user']['follower_count'] 
+            followercountavg += tweet['user']['followers_count']
             count += 1.0
 
         followercountavg /= count
@@ -73,11 +75,10 @@ class CoolAnalyzer(object):
     def filter_classes(self,tweets, avg):
         self.filtered = {'cool': [], 'uncool': []}
         for tweet in tweets:
-            if tweet['user']['follower_count'] >= avg:
+            if tweet['user']['followers_count'] >= avg:
                 self.filtered['cool'].append(tweet)
             else:
                 self.filtered['uncool'].append(tweet)
-
         return self.filtered
 
     def split_train_eval(self, filtered):
@@ -129,25 +130,30 @@ class CoolAnalyzer(object):
                     if elem not in seen:
                         diff = curVect[elem] * curVect[elem]
                         diffs.append(diff)
+
                 sums = sum(diffs)
-                sqrt = math.sqrt(sums)
-                distances[sqrt] = status
+                sqrt = math.sqrt(sums) 
+                distances[sqrt] = {'status': status, 'userid': curId}
 
         counter = 0
         for key in sorted(distances.iterkeys()):
+            if counter == 0:
+                self.users[userid]['closeuser'] = distances[key]['userid']
             if counter == 5:
                 break
-            if distances[key] == 'cool':
-                counts['cool'] += 1
+            if distances[key]['status'] == 'cool':
+                counts['cool'] += 1.0
             else:
-                counts['uncool'] += 1
+                counts['uncool'] += 1.0
             counter += 1
 
         if counts['cool'] > counts['uncool']:
+            self.users[userid]['coolscore'] = 100*(counts['cool'] / (counts['cool'] + counts['uncool'])) 
+            self.users[userid]['cool'] = 'yes'
+            #print self.users[userid]['coolscore']
             return 'cool'
         else:
+            self.users[userid]['coolscore'] = 100*(counts['cool'] / (counts['cool'] + counts['uncool']))
+            #print self.users[userid]['coolscore']
+            self.users[userid]['cool'] = 'no'
             return 'uncool'
-
-
-
-
