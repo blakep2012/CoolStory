@@ -119,7 +119,16 @@ def start():
 def start():
     api = db['api']
     
+    
     return flask.render_template('tweets.html', tweets=api.user_timeline())
+    
+@app.route('/about')
+def about():
+    return flask.render_template('about.html')
+    
+@app.route('/contact')
+def contact():
+    return flask.render_template('contact.html')
 
 if __name__ == "__main__":
 	app.run(debug=True)
