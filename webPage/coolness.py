@@ -15,34 +15,6 @@ class CoolAnalyzer(object):
         self.term_idf = {}
         self.filtered = {}
 
-    def _tf_idf(self, tweets):
-        df = defaultdict(int)
-        index = 1
-
-        for tweet in tweets:
-            #print tweet
-            tokens = re.findall("[\w']+", tweet['text'].lower())
-            if tweet['user']['id'] in self.users:
-                self.users[tweet['user']['id']]['tokens'] += tokens
-            else:
-                self.users[tweet['user']['id']] = {}
-                self.users[tweet['user']['id']]['tokens'] = tokens
-                self.users[tweet['user']['id']]['follower_count'] = tweet['user']['followers_count']
-                self.users[tweet['user']['id']]['index'] = index
-                self.users[tweet['user']['id']]['screen_name'] = tweet['user']['screen_name']
-                index += 1
-
-            for token in tokens:
-                df[token]+=1.0
-
-        self.term_idf = {
-            term:math.log(len(self.users)/count,2)
-            for term,count in df.iteritems()
-        }
-
-        for k, v in self.users.iteritems():
-            self.users[k]['vect'] = self._normed_vect(v['tokens'])
-
     def _term_tf_idf(self, term, count):
         if count==0 or term not in self.term_idf:
             return 0
@@ -59,6 +31,47 @@ class CoolAnalyzer(object):
         }
         mag = math.sqrt(sum(x**2 for x in vect.itervalues()))
         return {term:weight/mag for term,weight in vect.iteritems()}
+
+    def _tf_idf(self, tweets):
+        df = defaultdict(int)
+        index = 1
+
+        for tweet in tweets:
+            #print tweet
+            tokens = re.findall("[\w']+", tweet['text'].lower())
+            userid = tweet['user']['id']
+            if userid in self.users:
+                self.users[userid]['tokens'] = []
+                for token in tokens:
+                    if len(token) > 3:
+                        self.users[userid]['tokens'].append(token)
+                #print self.users[userid]['tokens']
+            else:
+                self.users[userid] = {}
+                self.users[userid]['tokens'] = []
+                for token in tokens:
+                    if len(token) > 3:
+                        self.users[userid]['tokens'].append(token)
+                #print self.users[userid]['tokens']
+                self.users[userid]['follower_count'] = tweet['user']['followers_count']
+                self.users[userid]['index'] = index
+                self.users[userid]['screen_name'] = tweet['user']['screen_name']
+                index += 1
+
+
+            for token in tokens:
+                df[token]+=1.0
+
+        self.term_idf = {
+            term:math.log(len(self.users)/count,2)
+            for term,count in df.iteritems()
+        }
+
+        for k, v in self.users.iteritems():
+            self.users[k]['vect'] = self._normed_vect(v['tokens'])
+
+        #print "# of users is: ", len(self.users)
+        #print self.users[280825871]['vect']
 
     def find_cool_line(self, tweets):
         followercountavg = 0.0
@@ -81,28 +94,7 @@ class CoolAnalyzer(object):
                 self.filtered['uncool'].append(tweet)
         return self.filtered
 
-    def split_train_eval(self, filtered):
-        smallest_class_size = min(len(tw) for tw in filtered.itervalues())
-        cutoff = 2*smallest_class_size//3
-        train_group, eval_group = {}, {}
-
-        for clas,tweets in filtered.iteritems():
-            # make the positive and negative classes the same size by throwing away
-            # tweets from the larger class.
-            picked = random.sample(tweets,smallest_class_size)
-            train_group[clas] = picked[:cutoff]
-            eval_group[clas] = picked[cutoff:]
-
-        return train_group, eval_group
-
     def knn(self, filtered, userid):
-        #For the given userid, check the distance between their text vector and all the others
-        #The text vector is located in tweet['userid']['vect']
-        #Check the distance between the given id vector and all others and choose the 3 smallest ones
-        #You can tell whether they are cool or not because they will be located in 'cool' or 'uncool'
-        #I put a call to this in coolnesstest.py for you but you can look at it and change it if you want
-        #The goal of this is to append a key to the current tweet that has key 'cool' and value
-        #true or false
         distances = {}
         counts = {'cool':0, 'uncool':0}
 
@@ -132,28 +124,35 @@ class CoolAnalyzer(object):
                         diffs.append(diff)
 
                 sums = sum(diffs)
-                sqrt = math.sqrt(sums) 
+                sqrt = math.sqrt(sums)
                 distances[sqrt] = {'status': status, 'userid': curId}
 
         counter = 0
         for key in sorted(distances.iterkeys()):
             if counter == 0:
-                self.users[userid]['closeuser'] = distances[key]['userid']
-            if counter == 5:
+                self.users[userid]['closeuser'] = self.users[distances[key]['userid']]['screen_name']
+            if counter == 20:
                 break
             if distances[key]['status'] == 'cool':
                 counts['cool'] += 1.0
+                #print distances[key]['userid']
+                #print key
             else:
                 counts['uncool'] += 1.0
+                #print distances[key]['userid']
+                #print key
             counter += 1
 
-        if counts['cool'] > counts['uncool']:
-            self.users[userid]['coolscore'] = 100*(counts['cool'] / (counts['cool'] + counts['uncool'])) 
+        self.users[userid]['coolscore'] = 100*(counts['cool'] / (counts['cool'] + counts['uncool']))
+        #print "all keys have been printed"
+
+        if self.users[userid]['coolscore'] >= 50.0:
+            #print counts['cool']
+            #print counts['uncool']
             self.users[userid]['cool'] = 'yes'
-            #print self.users[userid]['coolscore']
             return 'cool'
         else:
-            self.users[userid]['coolscore'] = 100*(counts['cool'] / (counts['cool'] + counts['uncool']))
-            #print self.users[userid]['coolscore']
+            #print counts['cool']
+            #print counts['uncool']
             self.users[userid]['cool'] = 'no'
             return 'uncool'
