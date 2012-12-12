@@ -14,13 +14,15 @@ class CoolAnalyzer(object):
         self.users = {}
         self.term_idf = {}
         self.filtered = {}
-
+        self.df = defaultdict(int)
+        
     def _term_tf_idf(self, term, count):
         if count==0 or term not in self.term_idf:
             return 0
         return (1+math.log(count,2))*self.term_idf[term]
 
     def _normed_vect(self, tokens):
+        print tokens
         counts = defaultdict(int)
         for token in tokens:
             counts[token]+=1
@@ -33,9 +35,7 @@ class CoolAnalyzer(object):
         return {term:weight/mag for term,weight in vect.iteritems()}
 
     def _tf_idf(self, tweets):
-        df = defaultdict(int)
         index = 1
-
         for tweet in tweets:
             #print tweet
             tokens = re.findall("[\w']+", tweet['text'].lower())
@@ -57,19 +57,22 @@ class CoolAnalyzer(object):
                 self.users[userid]['index'] = index
                 self.users[userid]['screen_name'] = tweet['user']['screen_name']
                 index += 1
+            
 
 
             for token in tokens:
-                df[token]+=1.0
-
+                self.df[token]+=1.0
+        
+        print "BEFORE"
         self.term_idf = {
             term:math.log(len(self.users)/count,2)
-            for term,count in df.iteritems()
+            for term,count in self.df.iteritems()
         }
-
+        print "AFTER"
         for k, v in self.users.iteritems():
             self.users[k]['vect'] = self._normed_vect(v['tokens'])
-
+        
+        print self.users[-1]
         #print "# of users is: ", len(self.users)
         #print self.users[280825871]['vect']
 

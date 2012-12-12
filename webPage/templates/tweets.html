@@ -1,20 +1,39 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html lang="en">
 <head>
-    <title>OAUTH Worked! yay</title>
-    <link rel="stylesheet" href="../static/style.css" type="text/css">
+    <title> Results </title>
+    
+        <img src="http://i.imgur.com/awyzb.png" align='middle' alt='About' style="margin:auto; display:block;" />
+    <style>
+        body {
+              background-color: #80C5E8;
+              background-image: url("http://i.imgur.com/dAytb.png");
+              background-position: 50% 50%;
+              background-repeat: no-repeat;
+              background-size: 600%;
+            }
+            
+        p {
+            color:white;
+            font-size:20;
+        }
+    </style>
 </head>
 <body>
-     <h1>OAuth Worked! yay</h1>
-   <div id="tweets">
-    {% for t in tweets %}
-        <div id='tweet'>{{ t.text }}</div>
-    {% endfor %}
+        <div style="position:fixed; bottom:0; right:35%; left:43%">
+            <a href='/'>Home</a>
+            <a href='/about'>About</a>
+            <a href='/contact'>Contact</a>
+        </div>
+        
+    <div id='num'>
+        <p> Percentage of cool: {{num}} </p>
     </div>
-    <div id=footer>
-	    brought to you by <a href="http://www.whichlight.com">whichlight</a><br>
-    	    tell me what you make <a href="http://www.twitter.com/kawantum">here</a>
+    <div id='status'>
+        <p> Cool? {{status}} </p>
     </div>
-
+    <div id='closestUser'>
+        <p> Who was closest to you? {{closestUser}} </p>
+    </div>
 </body>
 </html>

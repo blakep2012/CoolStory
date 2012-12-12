@@ -17,6 +17,7 @@ import tweepy
 import coolness
 import ujson
 import fileinput
+import re
 app = Flask(__name__)
 
 #config
@@ -36,19 +37,15 @@ def read_tweets():
         count += 1
         yield ujson.loads(line)
 
-def setup():
-    tweetIt = read_tweets()
-    COOL_TWEETS = []
-    for tweet in tweetIt:
-        COOL_TWEETS.append(tweet)
+def setup(COOL_TWEETS):
 
     analyzer._tf_idf(COOL_TWEETS)
     flwravg = analyzer.find_cool_line(COOL_TWEETS)
     analyzer.filter_classes(COOL_TWEETS,flwravg)
 
-    for userId in analyzer.users:
+    '''for userId in analyzer.users:
         #print userId
-        analyzer.knn(analyzer.filtered, userId)
+        analyzer.knn(analyzer.filtered, userId)'''
       
 #This is the new function for adding a user
 '''def injectUser():
@@ -56,7 +53,10 @@ def setup():
         
 analyzer = coolness.CoolAnalyzer()
 
-setup()
+tweetIt = read_tweets()
+COOL_TWEETS = []
+for tweet in tweetIt:
+    COOL_TWEETS.append(tweet)
 
 #Main chunk
 @app.route("/")
@@ -119,8 +119,31 @@ def start():
 def start():
     api = db['api']
     
+    tweets = api.user_timeline()
+    analyzer.users[-1] = {}
+    analyzer.users[-1]['tokens'] = []
+    for tweet in tweets:
+        tokens = re.findall("[\w']+", unicode(tweet.text.lower()))
+        for token in tokens:
+            if len(token) > 3:
+                analyzer.users[-1]['tokens'].append(token)
+            analyzer.df[token]+=1.0
+                
+
+        
+    setup(COOL_TWEETS)
+        
+    analyzer.knn(analyzer.filtered, -1)
     
-    return flask.render_template('tweets.html', tweets=api.user_timeline())
+    result = []
+    num = analyzer.users[-1]['coolscore']
+    num = str(num)
+    result.append(num)
+    status = analyzer.users[-1]['cool']
+    result.append(status)
+    closestUser = '@'
+    closestUser += analyzer.users[-1]['closeuser']
+    return flask.render_template('tweets.html', num=num, status=status, closestUser=analyzer.users[-1]['closeuser'])
     
 @app.route('/about')
 def about():
