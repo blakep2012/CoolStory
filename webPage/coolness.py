@@ -22,7 +22,7 @@ class CoolAnalyzer(object):
         return (1+math.log(count,2))*self.term_idf[term]
 
     def _normed_vect(self, tokens):
-        print tokens
+        #print tokens
         counts = defaultdict(int)
         for token in tokens:
             counts[token]+=1
@@ -63,16 +63,16 @@ class CoolAnalyzer(object):
             for token in tokens:
                 self.df[token]+=1.0
         
-        print "BEFORE"
+        #print "BEFORE"
         self.term_idf = {
             term:math.log(len(self.users)/count,2)
             for term,count in self.df.iteritems()
         }
-        print "AFTER"
+        #print "AFTER"
         for k, v in self.users.iteritems():
             self.users[k]['vect'] = self._normed_vect(v['tokens'])
         
-        print self.users[-1]
+        #print self.users[-1]
         #print "# of users is: ", len(self.users)
         #print self.users[280825871]['vect']
 
