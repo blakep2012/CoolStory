@@ -2,15 +2,11 @@
 ==========
 
 To Run:
-  1. Run Unit Tests with nosetests
+  1. Run from /webPage with command > python server.py <some json of tweets>
 
-Things included:
-	A classifier that determines whether the user is cool or not based on their tweet text
-	
-Things not included:
-	The classifier is technically the 'core' algorithm however we will also include
-	a cluster algorithm that will first cluster people based on their profile description (their 'about)
-	After this cluster the classifier will be run on each cluster to determine your coolness.
-	In this way, coolness has a meaning because you are being compared to people who share your interests.
-	
-=D
+To use:
+  1.Simply go to your web browser of choice.  Use localhost:5000
+  2.Click the 'signin with twitter' button to login with your twitter
+  3.See if you are cool
+  4.???
+  5.Profit

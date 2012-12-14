@@ -50,5 +50,8 @@ for line in open('tweets.2835.json', 'r').readlines():
     if 'place' in tweet:
         if 'Mexico' == tweet['place']['country']:
             continue
+    if 'user' in tweet:
+        if 'ohminaj' == tweet['user']['screen_name']:
+            continue
     print json.dumps(tweet)
     seen.add(tweet['id'])
